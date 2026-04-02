@@ -77,8 +77,9 @@ function summarizeConfig(config: Record<string, any> | null): string {
   return `已读取当前配置，发现 ${channelCount} 个渠道配置、${providerCount} 个模型提供商配置。`
 }
 
-function formatProbeErrorMessage(prefix: string, error: unknown): string {
-  return `${prefix}${error instanceof Error && error.message ? `：${error.message}` : ''}`
+function logAndReturnUiWarning(logLabel: string, uiMessage: string, error: unknown): string {
+  console.warn(logLabel, error)
+  return uiMessage
 }
 
 async function summarizePairing(
@@ -114,11 +115,11 @@ async function summarizePairing(
   const warnings: string[] = []
   const [pairingStatus, runtimeStatus] = await Promise.all([
     api.pairingFeishuStatus(accountIds).catch((error) => {
-      warnings.push(formatProbeErrorMessage('飞书配对状态读取失败', error))
+      warnings.push(logAndReturnUiWarning('feishu pairing status read failed during bootstrap', '飞书连接状态读取失败。', error))
       return null
     }),
     api.getFeishuRuntimeStatus().catch((error) => {
-      warnings.push(formatProbeErrorMessage('飞书运行状态读取失败', error))
+      warnings.push(logAndReturnUiWarning('feishu runtime status read failed during bootstrap', '飞书插件信息读取失败。', error))
       return null
     }),
   ])
@@ -166,11 +167,12 @@ export async function runDashboardEntryBootstrapFlow(
 
   notify('config', 'active', '正在读取当前配置...')
   const config = await api.readConfig().catch((error) => {
-    notify('config', 'error', '当前配置读取失败，当前无法安全进入控制面板。')
+    console.warn('gateway bootstrap config read failed', error)
+    notify('config', 'error', '当前无法读取必要配置，暂时不能进入控制面板。')
     throw createGenericFailureView(
-      '当前配置暂时不可读取',
-      `当前无法读取配置，所以不能安全进入控制面板。${error instanceof Error ? ` ${error.message}` : ''}`,
-      ['先点击“重试进入前检查”再试一次。', '如果问题持续存在，再回到配置引导重新整理当前机器上的配置。']
+      '配置暂时无法读取',
+      'Qclaw 现在还不能读取进入控制面板所需的配置，请稍后重试。',
+      ['先点击“重新检查”再试一次。', '如果问题仍然存在，可返回配置向导重新配置。']
     )
   })
   notify('config', 'done', summarizeConfig(config))
@@ -178,25 +180,29 @@ export async function runDashboardEntryBootstrapFlow(
   const softWarnings: string[] = []
   notify('gateway', 'active', '正在读取当前网关状态...')
   const health = await api.gatewayHealth().catch((error) => {
-    softWarnings.push(formatProbeErrorMessage('网关状态读取失败，控制面板将先按离线状态进入', error))
+    softWarnings.push(logAndReturnUiWarning('gateway health read failed during bootstrap', '暂时无法读取网关状态，控制面板会先按当前已知状态打开。', error))
     return null
   })
   const gatewayRunning = health?.running === true
   if (gatewayRunning) {
-    notify('gateway', 'done', String(health?.summary || '').trim() || '网关当前状态已就绪。')
+    notify('gateway', 'done', String(health?.summary || '').trim() || '网关状态已读取完成。')
   } else {
     const gatewayWarning =
-      String(health?.summary || '').trim() || '网关当前未就绪，进入控制面板后可继续处理。'
+      String(health?.summary || '').trim() || '网关暂未就绪，进入控制面板后可继续处理。'
     if (health) {
       softWarnings.push(`网关当前未就绪：${gatewayWarning}`)
     }
-    notify('gateway', 'warning', gatewayWarning)
+    notify('gateway', 'warning', '网关暂未就绪')
   }
 
   const upstreamModelState = await readOpenClawUpstreamModelState(api.getModelUpstreamState)
   const upstreamModelStatus = getUpstreamModelStatusLike(upstreamModelState)
   if (upstreamModelState.fallbackUsed && upstreamModelState.fallbackReason) {
-    softWarnings.push(`模型上游状态暂不可用，已回退到命令行工具状态快照：${upstreamModelState.fallbackReason}`)
+    softWarnings.push(logAndReturnUiWarning(
+      'model upstream state fallback used',
+      '暂时无法读取最新模型状态，当前先按已有配置显示模型信息。',
+      upstreamModelState.fallbackReason
+    ))
   }
 
   let modelStatus = upstreamModelStatus
@@ -207,7 +213,7 @@ export async function runDashboardEntryBootstrapFlow(
       : null
   }
   if (!modelStatus) {
-    softWarnings.push('模型状态读取失败：控制面板将先按配置快照显示模型信息。')
+    softWarnings.push('模型状态暂时不可用，稍后可在控制面板中刷新。')
   }
 
   let pairingSummaryData: DashboardEntryPairingSummary | null = null
@@ -222,8 +228,8 @@ export async function runDashboardEntryBootstrapFlow(
       notify('pairing', 'done', pairingSummary.summary)
     }
   } catch (error) {
-    notify('pairing', 'warning', '配对状态读取失败，进入控制面板后会按需重新刷新。')
-    softWarnings.push(`配对状态整理失败：${error instanceof Error ? error.message : String(error)}`)
+    notify('pairing', 'warning', '连接状态暂时读取失败，进入控制面板后可重新刷新。')
+    softWarnings.push(logAndReturnUiWarning('pairing summary assembly failed during bootstrap', '连接状态整理失败。', error))
   }
 
   return {
@@ -303,9 +309,9 @@ export default function GatewayBootstrapGate({
         cause && typeof cause === 'object' && 'title' in cause
           ? (cause as GatewayBootstrapFailureView)
           : createGenericFailureView(
-              '进入前检查没有完成',
-              `进入控制面板前的检查被中断。${cause instanceof Error ? ` ${cause.message}` : ''}`,
-              ['先点击“重试进入前检查”再试一次。', '如果问题持续存在，再回到配置引导重新整理当前机器上的配置。']
+              '最终检查未完成',
+              '进入控制面板前的检查被中断，请重试。',
+              ['先点击“重新检查”再试一次。', '如果问题仍然存在，再回到配置向导重新配置。']
             )
       setFatalError(fallbackView)
     } finally {
@@ -360,7 +366,7 @@ export default function GatewayBootstrapGate({
 
       {/* 软警告 */}
       {softWarnings.length > 0 && (
-        <Alert color="yellow" variant="light" w="100%" title="已降级继续" styles={{ title: { fontSize: 'var(--mantine-font-size-xs)' } }}>
+        <Alert color="yellow" variant="light" w="100%" styles={{ title: { fontSize: 'var(--mantine-font-size-xs)' } }}>
           {softWarnings.map((w) => (
             <Text key={w} size="xs">{w}</Text>
           ))}
@@ -388,7 +394,7 @@ export default function GatewayBootstrapGate({
             {bootstrapping ? '检查中...' : fatalError ? '重试' : '重新检查'}
           </Button>
           <Button onClick={onReconfigure} variant="default" size="xs" disabled={bootstrapping}>
-            配置引导
+            重新配置
           </Button>
         </div>
       )}

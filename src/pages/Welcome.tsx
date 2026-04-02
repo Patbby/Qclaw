@@ -35,7 +35,7 @@ export default function Welcome({ onAccept }: WelcomeProps) {
           <li>读取和修改文件、执行系统命令、连接互联网</li>
           <li>访问您的 API 密钥（用于调用 AI 服务）</li>
           <li>操作消息渠道（飞书、企微、钉钉等）</li>
-          <li><span className="app-text-warning font-medium">使用 AI 服务会产生费用，取决于您选择的提供商</span></li>
+          <li><span className="app-text-warning font-medium">使用 AI 服务可能产生费用，具体取决于你选择的服务商和使用量。</span></li>
         </ul>
       </div>
 
@@ -51,7 +51,7 @@ export default function Welcome({ onAccept }: WelcomeProps) {
         <ul className="list-disc list-inside app-text-secondary mt-0.5 flex flex-col" style={{ fontSize: '12.5px', lineHeight: 1.7 }}>
           <li>自动安装必要组件（Node.js、OpenClaw 命令行工具、IM 插件）</li>
           <li><span className="app-text-warning font-medium">保护现有配置（安装前自动备份，不会覆盖您的设置）</span></li>
-          <li>本地数据存储（所有配置和数据仅保存在您的电脑上）</li>
+          <li>本地数据存储（所有配置和数据默认只保存在此电脑上）</li>
         </ul>
       </div>
 

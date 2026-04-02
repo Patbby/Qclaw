@@ -534,7 +534,7 @@ function TakeoverNotification({
     for (const failure of failures) {
       notifications.show({
         id: `takeover-fail-${failure.candidateId}`,
-        title: '备份失败',
+        title: '自动备份失败',
         message: formatTakeoverFailureManualBackupWarning(failure),
         color: 'red',
         autoClose: false,
@@ -1033,9 +1033,10 @@ export default function EnvCheck({
         autoClose: 5000,
       })
     } catch (error) {
+      console.error('record manual backup acknowledgment failed', error)
       notifications.show({
         title: '继续接管失败',
-        message: error instanceof Error ? error.message : String(error),
+        message: '未能记录手动备份确认，请稍后重试。',
         color: 'red',
         autoClose: 6000,
       })
@@ -1064,9 +1065,10 @@ export default function EnvCheck({
       })
       resetEnvCheck(runAttempt)
     } catch (error) {
+      console.error('record history recovery manual backup acknowledgment failed', error)
       notifications.show({
         title: '继续恢复失败',
-        message: error instanceof Error ? error.message : String(error),
+        message: '未能记录手动备份确认，请稍后重试。',
         color: 'red',
         autoClose: 6000,
       })
@@ -1090,8 +1092,8 @@ export default function EnvCheck({
       await window.api.refreshEnvironment()
       resetEnvCheck(runAttempt)
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      setOpenClawUpgradeError(message)
+      console.error('openclaw upgrade failed', error)
+      setOpenClawUpgradeError('OpenClaw 升级失败，请稍后重试。')
       updateStep('openclaw', {
         status: openClawGateState?.blocksContinue ? 'pending-install' : 'ok',
         description: openClawGateState?.message || 'OpenClaw 升级失败，请稍后重试',
@@ -1180,7 +1182,8 @@ export default function EnvCheck({
       const canceledSummary = formatCancelDomainSummary(cancelResult.canceledDomains)
       const failedSummary = formatCancelDomainSummary(cancelResult.failedDomains)
       if (cancelResult.failedDomains.length > 0) {
-        showFatalMessage(`操作已取消。已停止域：${canceledSummary}；停止失败域：${failedSummary}`)
+        console.warn('cancel command partially failed', { canceledSummary, failedSummary, cancelResult })
+        showFatalMessage('已停止部分操作，但仍有任务未能停止，请稍后重试。')
         return
       }
 
@@ -1191,11 +1194,12 @@ export default function EnvCheck({
       setIsRunning(false)
 
       if (canceled) {
-        showFatalMessage(`操作已取消。已停止域：${canceledSummary}`)
+        console.warn('cancel command stopped active work', { canceledSummary, cancelResult })
+        showFatalMessage('已停止当前操作。')
         return
       }
 
-      showFatalMessage('当前没有可取消的运行任务。')
+      showFatalMessage('当前没有正在进行的操作。')
     }
   }
 
@@ -1265,9 +1269,10 @@ export default function EnvCheck({
         throw new Error(`升级后版本仍低于要求（当前: ${recheckResult.version}，要求: >= ${requiredNodeVersion}）`)
       }
     } catch (error) {
+      console.error('manual node upgrade failed', error)
       updateStep('node', {
         status: 'pending-install',
-        error: `升级失败: ${error instanceof Error ? error.message : String(error)}`
+        error: '升级失败，请稍后重试。'
       })
       setIsRunning(false)
     }
@@ -1289,7 +1294,7 @@ export default function EnvCheck({
       return
     }
     if (!window.api) {
-      setFatalIssue({ message: '桌面环境初始化失败（window.api 不可用），请重启应用重试。' })
+      setFatalIssue({ message: '桌面运行环境初始化失败，请重启应用后重试。' })
       return
     }
     setIsRunning(true)
@@ -1352,9 +1357,9 @@ export default function EnvCheck({
       try {
         nodeInstallPlan = await window.api.resolveNodeInstallPlan()
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
+        console.error('resolve latest Node install info failed', error)
         updateStep('node', { status: 'error', error: '无法获取最新版本' })
-        showFatalMessage(`无法获取最新 Node.js 稳定版安装信息，请检查网络后重试。${message ? ` 原始错误：${message}` : ''}`, 'download-failed')
+        showFatalMessage('暂时无法获取 Node.js 安装信息，请检查网络后重试。', 'download-failed')
         setIsRunning(false)
         return
       }
@@ -1543,7 +1548,8 @@ export default function EnvCheck({
         updateStep('openclaw', { status: 'error', error: '安装失败' })
       }
       if (!needNode) {
-        showFatalMessage(`安装失败: ${errDetail}`)
+        console.error('installer failed', errDetail)
+        showFatalMessage('安装失败，请稍后重试。')
       }
       setIsRunning(false)
       return
@@ -1591,7 +1597,7 @@ export default function EnvCheck({
       const newOpenclawResult = await window.api.checkOpenClaw()
       if (!newOpenclawResult.installed) {
         updateStep('openclaw', { status: 'error', error: '安装后仍无法检测到' })
-        showFatalMessage('OpenClaw 命令行工具安装异常，请重启应用重试')
+        showFatalMessage('OpenClaw 未能正常识别，请重启应用后重试')
         setIsRunning(false)
         return
       }
@@ -1638,8 +1644,8 @@ export default function EnvCheck({
       discoveryResult: finalDiscoveryResult,
     })
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      showFatalMessage(`环境检测过程中发生异常：${message}`)
+      console.error('env check failed', err)
+      showFatalMessage('环境检查失败，请稍后重试。')
       setIsRunning(false)
     }
   }
@@ -1729,7 +1735,7 @@ export default function EnvCheck({
           color="yellow"
           variant="light"
           mb="sm"
-          title="已自动隔离损坏插件"
+          title="已自动隔离异常插件"
           withCloseButton
           onClose={() => setPluginRepairNoticeVisible(false)}
         >
@@ -1744,7 +1750,7 @@ export default function EnvCheck({
           color="red"
           variant="light"
           mb="sm"
-          title="损坏插件环境修复失败"
+          title="插件问题修复失败"
           withCloseButton
           onClose={() => setPluginRepairErrorVisible(false)}
         >
@@ -2046,13 +2052,8 @@ export default function EnvCheck({
             {formatTakeoverFailureManualBackupWarning(activeTakeoverFailure)}
           </Text>
           <Text size="xs" c="dimmed" mt="xs">
-            为了避免在没有兜底备份的情况下直接接管旧安装，Qclaw 先阻止进入控制面板。你可以重试自动备份；如果已经按上面的路径完成手动备份，也可以继续接管。
+            为了避免在没有备份的情况下直接接管旧安装，Qclaw 暂时不会继续。你可以重试自动备份；如果已经按上面的路径完成手动备份，也可以继续。
           </Text>
-          {activeTakeoverFailure.message && activeTakeoverFailure.message !== '自动备份失败，请稍后重试。' && (
-            <Text size="xs" c="yellow" mt="xs">
-              系统返回：{activeTakeoverFailure.message}
-            </Text>
-          )}
           <div className="mt-3 flex flex-wrap gap-2">
             <Button
               size="xs"

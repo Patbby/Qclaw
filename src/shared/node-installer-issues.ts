@@ -104,7 +104,7 @@ export function createNodeInstallerIssue(
     return {
       kind,
       title: '系统策略阻止了安装',
-      message: 'macOS 安全策略或企业设备管理策略阻止了这个 Node.js 安装包。请联系管理员放行，或改为手动安装 Node.js。',
+      message: '这台电脑的安全策略阻止了 Node.js 安装。请联系管理员处理，或改为手动安装 Node.js。',
       details: normalizedDetails,
     }
   }

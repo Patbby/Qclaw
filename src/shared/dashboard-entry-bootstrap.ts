@@ -97,7 +97,7 @@ export function resolveDashboardEntryBootstrapCopy(
   if (state.pairing === 'active') {
     return {
       title: '整理配对状态',
-      detail: '正在汇总飞书接通情况、运行状态和配对状态。',
+      detail: '正在汇总飞书连接情况和配对结果。',
     }
   }
 
