@@ -1737,7 +1737,6 @@ export default function ModelCenter({
   const canOpenManualLink = canOpenManualOAuthUrl(manualOAuthUrl, openingOAuthUrl)
   const recommendedDependencyInstallOption = getRecommendedDependencyInstallOption(oauthDependencyAction)
   const showProviderConfigContent = shouldRenderProviderConfigContent(providerConfigExpanded, collapsible)
-  const metadataSourceLabel = capabilities ? formatAuthRegistrySourceLabel(capabilities.authRegistrySource) : ''
   const providerConfigToggleAriaLabel = getProviderConfigToggleAriaLabel(providerConfigExpanded)
   const localDiscoveryDisplay = getLocalDiscoveryDisplay(
     connectionTest,
@@ -2615,9 +2614,6 @@ export default function ModelCenter({
 
       {showProviderConfigContent && (
         <>
-          <Text size="sm" c="dimmed" mb={4}>从 OpenClaw 能力中动态加载提供商与认证方式</Text>
-          {capabilities && <Text size="xs" c="dimmed" mb="md" className="!text-[11px]">元数据来源：{metadataSourceLabel}</Text>}
-
           {phase === 'loading' && (
             <div className="mb-5 max-w-xl rounded-xl border app-border app-bg-tertiary p-4">
               <div className="mb-3 flex items-center justify-between text-[11px] app-text-muted">
@@ -2663,7 +2659,6 @@ export default function ModelCenter({
                   disabled={interactionLocked}
                   size="sm"
                 />
-                {selectedProvider?.hint && <Text size="xs" c="dimmed" mt={4} className="!text-[11px]">{selectedProvider.hint}</Text>}
               </div>
 
               {isLocal ? (
@@ -2803,7 +2798,6 @@ export default function ModelCenter({
                   disabled={interactionLocked}
                   size="sm"
                 />
-                {selectedMethod?.hint && <Text size="xs" c="dimmed" mt={4} className="!text-[11px]">{selectedMethod.hint}</Text>}
                 {!selectedMethod?.supported && unsupportedReason && (
                   <div className="mt-2 rounded-lg px-2.5 py-2 text-[11px] app-text-warning" style={{ backgroundColor: 'var(--app-bg-inset)', border: '1px solid var(--app-border)' }}>
                     <span className="mr-1 inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide" style={{ backgroundColor: 'var(--app-bg-tertiary)' }}>
@@ -2843,17 +2837,6 @@ export default function ModelCenter({
                     disabled={interactionLocked}
                     size="sm"
                   />
-                  {selectedExtraOption &&
-                    selectedMethod.route.extraOptions.find((option) => normalizeMethodId(option.id) === normalizeMethodId(selectedExtraOption))
-                      ?.hint && (
-                      <Text size="xs" c="dimmed" mt={4} className="!text-[11px]">
-                        {
-                          selectedMethod.route.extraOptions.find(
-                            (option) => normalizeMethodId(option.id) === normalizeMethodId(selectedExtraOption)
-                          )?.hint
-                        }
-                      </Text>
-                    )}
                 </div>
               ) : null}
 

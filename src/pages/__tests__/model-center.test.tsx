@@ -45,6 +45,7 @@ import {
   shouldShowOAuthFallbackPanel,
   shouldShowManualOAuthLink,
 } from '../ModelCenter'
+import modelCenterSource from '../ModelCenter.tsx?raw'
 
 const CAPABILITIES: OpenClawCapabilities = {
   version: 'OpenClaw 2026.3.8',
@@ -251,6 +252,19 @@ describe('buildProviderOptions', () => {
 
     expect(apiKeyMethod?.supported).toBe(false)
     expect(apiKeyMethod?.disabledReason).toContain('命令行参数')
+  })
+})
+
+describe('ModelCenter source copy cleanup', () => {
+  it('does not keep the redundant provider setup helper copy in the page source', () => {
+    expect(modelCenterSource).not.toContain('从 OpenClaw 能力中动态加载提供商与认证方式')
+    expect(modelCenterSource).not.toContain('元数据来源：')
+  })
+
+  it('does not render provider and auth hint helper text below the selects', () => {
+    expect(modelCenterSource).not.toMatch(/\{selectedProvider\?\.hint && <Text/)
+    expect(modelCenterSource).not.toMatch(/\{selectedMethod\?\.hint && <Text/)
+    expect(modelCenterSource).not.toMatch(/\.extraOptions\.find\(\(option\) => normalizeMethodId\(option\.id\) === normalizeMethodId\(selectedExtraOption\)\)\s*\?\.hint/)
   })
 })
 

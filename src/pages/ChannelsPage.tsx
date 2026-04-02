@@ -30,7 +30,6 @@ import type { ManagedChannelPluginStatusView } from '../shared/managed-channel-p
 import {
   getOfficialChannelStageColor,
   getOfficialChannelStageLabel,
-  getOfficialChannelStageStateLabel,
 } from '../shared/official-channel-status-view'
 import { runManagedChannelRepairFlow } from '../shared/managed-channel-repair'
 import { resolveManagedChannelIdentity } from '../shared/managed-channel-identity'
@@ -93,6 +92,12 @@ export function getChannelEnabledLabel(enabled: boolean): string {
 
 export function shouldShowPluginStatus(channel: Pick<ChannelInfo, 'pluginStatus'>): boolean {
   return Boolean(channel.pluginStatus)
+}
+
+export function getVisiblePluginStatusStages(
+  pluginStatus: Pick<ManagedChannelPluginStatusView, 'stages'> | null | undefined
+) {
+  return (pluginStatus?.stages || []).filter((stage) => stage.state !== 'unknown')
 }
 
 export function shouldShowFeishuPluginRepairAction(
@@ -692,9 +697,6 @@ export default function ChannelsPage() {
       <Group justify="space-between">
         <div>
           <Text size="xl" fw={700}>消息渠道管理</Text>
-          <Text size="sm" c="dimmed" mt={4}>
-            配置和管理飞书、企微、钉钉、QQ 等消息渠道
-          </Text>
         </div>
         <Group gap="sm">
           <Button
@@ -779,19 +781,6 @@ export default function ChannelsPage() {
                             {platformInfo.name}
                           </Badge>
                         </Group>
-                        <Text size="xs" c="dimmed" mt={4}>
-                          ID: {channel.id}
-                        </Text>
-                        {!channel.isFeishuBot && channel.configChannelId !== channel.channelId && (
-                          <Text size="xs" c="dimmed" mt={4}>
-                            渠道标识：{channel.channelId}
-                          </Text>
-                        )}
-                        {channel.agentId && (
-                          <Text size="xs" c="dimmed" mt={4}>
-                            Agent: {channel.agentId}
-                          </Text>
-                        )}
                         <Group gap="xs" mt={8}>
                           <Badge variant="light" size="sm" color={channel.enabled ? 'teal' : 'gray'}>
                             {getChannelEnabledLabel(channel.enabled)}
@@ -806,34 +795,17 @@ export default function ChannelsPage() {
                             </Badge>
                           )}
                         </Group>
-                        <Text size="xs" c="dimmed" mt={6}>
-                          {channel.pairingRequired
-                            ? channel.channelId === 'openclaw-weixin'
-                              ? '点击卡片可为这个个人微信账号批准其他用户的配对授权。'
-                              : '点击卡片可进入这个机器人的配对管理。'
-                            : channel.channelId === 'openclaw-weixin'
-                              ? '当前个人微信仅支持扫码登录的这个微信账号使用，暂不支持给其他微信用户做配对授权。'
-                            : `${platformInfo.name} 渠道接入后无需额外配对。`}
-                        </Text>
-                        {channel.channelId === 'feishu' && channel.runtimeSummary && (
-                          <Text size="xs" c="dimmed" mt={6}>
-                            运行状态：{channel.runtimeSummary}
-                          </Text>
-                        )}
-                        {shouldShowPluginStatus(channel) && channel.pluginStatus && (
+                        {shouldShowPluginStatus(channel) && channel.pluginStatus && getVisiblePluginStatusStages(channel.pluginStatus).length > 0 && (
                           <div className="mt-3 space-y-2">
-                            <Text size="xs" c="dimmed">
-                              插件状态：{channel.pluginStatus.summary}
-                            </Text>
                             <Group gap="xs">
-                              {channel.pluginStatus.stages.map((stage) => (
+                              {getVisiblePluginStatusStages(channel.pluginStatus).map((stage) => (
                                 <Badge
                                   key={`${channel.id}:${stage.id}`}
                                   variant="light"
                                   size="sm"
                                   color={getOfficialChannelStageColor(stage.state)}
                                 >
-                                  {getOfficialChannelStageLabel(stage.id)} · {getOfficialChannelStageStateLabel(stage.state)}
+                                  {getOfficialChannelStageLabel(stage.id)}
                                 </Badge>
                               ))}
                             </Group>
@@ -1066,12 +1038,6 @@ export default function ChannelsPage() {
         size="lg"
       >
         <div className="space-y-4">
-          {selectedModelChannel?.agentId && (
-            <Text size="sm" c="dimmed">
-              Agent: {selectedModelChannel.agentId}
-            </Text>
-          )}
-
           {currentRuntimeModel && (
             <Alert color="blue" variant="light" title="当前运行模型">
               {currentRuntimeModel}

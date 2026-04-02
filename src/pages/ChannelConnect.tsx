@@ -6,7 +6,6 @@ import FeishuInstallTutorialModal from '../components/FeishuInstallTutorialModal
 import {
   applyChannelConfig,
   getChannelDefinition,
-  getChannelPluginInstallLabel,
   isChannelPluginConfigured,
   isPluginAlreadyInstalledError,
   listChannelDefinitions,
@@ -2088,7 +2087,6 @@ export default function ChannelConnect({
   return (
     <div className="w-full">
       <Title order={3} size="lg" fw={600} mb={4}>连接消息渠道</Title>
-      <Text size="sm" c="dimmed" mb="lg">选择并配置您的即时通讯平台</Text>
 
       {status === 'form' && (
         <>
@@ -2122,8 +2120,6 @@ export default function ChannelConnect({
                   帮助 →
                 </a>
               </div>
-
-              <Text size="xs" c="dimmed">{selectedChannel.helpText}</Text>
 
               {selectedChannel.id === 'feishu' ? (
                 <div className="space-y-4">
@@ -2250,22 +2246,6 @@ export default function ChannelConnect({
                         </div>
                       )}
 
-                      <div className="space-y-2 text-xs leading-6 app-text-tertiary">
-                        <p className="font-medium app-text-secondary">选择“新建机器人”</p>
-                        <p>使用飞书扫码创建新的官方机器人即可。</p>
-                        <a
-                          href={FEISHU_OFFICIAL_GUIDE_URL}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex text-[11px] app-text-success hover:opacity-80"
-                        >
-                          打开飞书官网使用指南
-                        </a>
-                        <p className="text-[11px] leading-5 app-text-muted">
-                          如果你已经在飞书开放平台创建好了机器人，请点击上方“关联已有机器人”，
-                          Qclaw 会先确认飞书官方插件真实可用；缺失时会先自动补装，再开放手动绑定。
-                        </p>
-                      </div>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -2419,13 +2399,6 @@ export default function ChannelConnect({
                 </div>
               ) : selectedChannel.id === 'openclaw-weixin' ? (
                 <div className="space-y-3">
-                  <Text size="sm" c="dimmed">
-                    点击“开始连接”后，Qclaw 会安装个人微信插件，并在下方命令输出里直接展示二维码。请使用微信扫码并在手机上确认授权。
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    如果二维码过期，安装器会自动刷新；连接成功后，账号会自动同步到控制面板中。当前版本暂不支持给其他微信用户做配对授权，仅扫码登录的这个微信账号可直接使用。
-                  </Text>
-
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant="filled"
@@ -2519,12 +2492,6 @@ export default function ChannelConnect({
                 </div>
               ) : (
                 <>
-                  {selectedChannel.plugin && (
-                    <div className="text-xs app-text-muted app-bg-tertiary border app-border-light rounded px-2 py-1.5">
-                      将自动安装: {getChannelPluginInstallLabel(selectedChannel)}
-                    </div>
-                  )}
-
                   {selectedChannel.useQrBinding && selectedChannel.fields.length > 0 && (
                     <SegmentedControl
                       value={bindingMode}

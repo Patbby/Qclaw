@@ -85,21 +85,6 @@ function formatMessageTime(createdAt: number, fallback = ''): string {
   })
 }
 
-function buildComposerHint(params: {
-  hasSession: boolean
-  canPatchModel: boolean
-}): string {
-  if (!params.hasSession) {
-    return '发送首条消息后可切换会话模型 · Enter 发送 · Shift+Enter 换行'
-  }
-
-  if (!params.canPatchModel) {
-    return '当前会话暂不支持切换模型 · Enter 发送 · Shift+Enter 换行'
-  }
-
-  return '模型切换仅影响当前会话 · Enter 发送 · Shift+Enter 换行'
-}
-
 function buildEmptyTranscript(sessionId: string): ChatTranscript {
   return {
     sessionId,
@@ -130,20 +115,6 @@ function formatUsageLabel(usage: ChatUsage | null | undefined): string {
     Number.isFinite(usage.outputTokens) ? `输出 ${TOKEN_FORMATTER.format(Number(usage.outputTokens))}` : '',
   ].filter(Boolean)
   return parts.join(' · ')
-}
-
-function formatSessionUsage(session: ChatSessionSummary | null | undefined): string {
-  if (!session) return ''
-  if (Number.isFinite(session.totalTokens) && Number.isFinite(session.contextTokens)) {
-    return `${TOKEN_FORMATTER.format(Number(session.totalTokens))}/${TOKEN_FORMATTER.format(Number(session.contextTokens))} tokens`
-  }
-  if (Number.isFinite(session.totalTokens)) {
-    return `${TOKEN_FORMATTER.format(Number(session.totalTokens))} tokens`
-  }
-  if (Number.isFinite(session.contextTokens)) {
-    return `上下文 ${TOKEN_FORMATTER.format(Number(session.contextTokens))}`
-  }
-  return ''
 }
 
 function findLastAssistantModel(messages: ChatMessage[]): string {
@@ -404,10 +375,6 @@ export default function DashboardChatPanel({
     loadingSessions,
     loadingTranscript,
     renderedMessageCount: renderedMessages.length,
-  })
-  const composerHint = buildComposerHint({
-    hasSession: Boolean(activeSession),
-    canPatchModel: sessionModelSelectionEnabled,
   })
   const externalTranscriptMessage = resolveExternalTranscriptMessage(activeTranscript)
   const capabilityIndicators = buildChatCapabilityIndicators(capabilitySnapshot)
@@ -986,7 +953,6 @@ export default function DashboardChatPanel({
       <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
         <div>
           <Group gap="xs">
-            <Text size="sm" fw={600}>直接对话</Text>
             <Badge
               variant="light"
               color={headerBadgeColor}
@@ -1234,9 +1200,6 @@ export default function DashboardChatPanel({
               <Group justify="space-between" gap="sm">
                 <div>
                   <Text size="xs" fw={500}>最近会话</Text>
-                  <Text size="xs" c="dimmed" mt={4}>
-                    展示最近 OpenClaw / Qclaw 会话，并明确区分本地会话与历史来源会话。
-                  </Text>
                 </div>
                 <Button
                   variant="light" color="brand"
@@ -1279,12 +1242,8 @@ export default function DashboardChatPanel({
                                 {session.model || '默认模型'}
                               </Text>
                               <Text size="xs" c="dimmed" mt={2}>
-                                {formatSessionTime(session.updatedAt)} · {session.sessionId.slice(0, 8)}
-                                {formatSessionUsage(session) ? ` · ${formatSessionUsage(session)}` : ''}
+                                {formatSessionTime(session.updatedAt)}
                               </Text>
-                              {historySummary.modelDetail && (
-                                <Text size="xs" c="dimmed" mt={2}>{historySummary.modelDetail}</Text>
-                              )}
                               {(() => {
                                 const rowIntentState = resolveSessionModelIntentState({
                                   hasSession: true,
@@ -1328,9 +1287,6 @@ export default function DashboardChatPanel({
 
                                 return null
                               })()}
-                              {!session.canPatchModel && session.modelSwitchBlockedReason && (
-                                <Text size="xs" c="dimmed" mt={2}>{session.modelSwitchBlockedReason}</Text>
-                              )}
                             </div>
                             <Group gap={4} wrap="wrap" justify="flex-end" style={{ flexShrink: 0 }}>
                               <Badge
@@ -1670,11 +1626,7 @@ export default function DashboardChatPanel({
                   </Group>
                 )}
 
-                <Group justify="space-between" align="center" wrap="nowrap" gap="sm">
-                  <Text size="xs" c="dimmed" style={{ flex: 1, minWidth: 0 }} lineClamp={2}>
-                    {composerHint}
-                  </Text>
-
+                <Group justify="flex-end" align="center" wrap="nowrap" gap="sm">
                   <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                     {modelOptions.length > 0 && (
                       <Tooltip label={showComposerModelPicker ? '收起会话模型' : '展开会话模型'} withArrow>

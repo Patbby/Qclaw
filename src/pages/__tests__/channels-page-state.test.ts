@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  getVisiblePluginStatusStages,
   getChannelEnabledLabel,
   shouldReuseModelOptionsCache,
   shouldShowFeishuPluginRepairAction,
@@ -33,6 +34,19 @@ describe('channels page state helpers', () => {
         pluginStatus: null,
       })
     ).toBe(false)
+  })
+
+  it('filters channel-card plugin badges to evidence-backed states only', () => {
+    expect(
+      getVisiblePluginStatusStages({
+        stages: [
+          { id: 'installed', state: 'verified' },
+          { id: 'registered', state: 'verified' },
+          { id: 'loaded', state: 'unknown' },
+          { id: 'ready', state: 'unknown' },
+        ] as any,
+      }).map((stage) => stage.id)
+    ).toEqual(['installed', 'registered'])
   })
 
   it('adds a direct feishu plugin repair action to the channel card actions', () => {
@@ -97,5 +111,23 @@ describe('channels page state helpers', () => {
     expect(channelsPageSource).toContain("mode: 'all'")
     expect(channelsPageSource).toContain('envVars')
     expect(channelsPageSource).toContain('configData')
+  })
+
+  it('does not keep redundant channel-card subtitle, identifiers, or unknown plugin badges in the page source', () => {
+    const channelsPageSource = fs.readFileSync(
+      path.join(process.cwd(), 'src', 'pages', 'ChannelsPage.tsx'),
+      'utf8'
+    )
+
+    expect(channelsPageSource).not.toContain('配置和管理飞书、企微、钉钉、QQ 等消息渠道')
+    expect(channelsPageSource).not.toContain('ID:')
+    expect(channelsPageSource).not.toContain('Agent:')
+    expect(channelsPageSource).not.toContain('渠道标识：')
+    expect(channelsPageSource).not.toContain('点击卡片可进入这个机器人的配对管理。')
+    expect(channelsPageSource).not.toContain('渠道接入后无需额外配对。')
+    expect(channelsPageSource).not.toContain('运行状态：')
+    expect(channelsPageSource).not.toContain('插件状态：')
+    expect(channelsPageSource).not.toContain('unknown / 未证实')
+    expect(channelsPageSource).toContain("stage.state !== 'unknown'")
   })
 })

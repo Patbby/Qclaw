@@ -1687,9 +1687,6 @@ export default function ModelsPage() {
             </Tooltip>
           </Group>
         </Group>
-        <Text size="xs" c="dimmed">
-          {catalogSummary.label} · {catalogSummary.detail}
-        </Text>
       </div>
 
       {error && (

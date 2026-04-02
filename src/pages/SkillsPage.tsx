@@ -612,7 +612,6 @@ export default function SkillsPage() {
           <Tooltip label={tooltips.skillsPage.overview} withArrow multiline maw={320}>
             <h1 className="text-xl font-bold app-text-primary inline-block">Skills 管理</h1>
           </Tooltip>
-          <Text size="xs" c="dimmed">查看和配置 OpenClaw Skills</Text>
         </div>
         <Tooltip label="刷新" withArrow>
           <ActionIcon
