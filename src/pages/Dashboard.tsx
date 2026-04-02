@@ -1477,7 +1477,7 @@ export default function Dashboard({
               }}
               className="app-text-muted"
             />
-            <Text size="sm" fw={600} className="app-text-primary">IM 渠道</Text>
+            <Text size="sm" fw={600} className="app-text-primary">消息渠道</Text>
             <Badge variant="outline" color="gray" size="xs">
               {channels.length}
             </Badge>
@@ -1510,7 +1510,7 @@ export default function Dashboard({
                 })}
               </Group>
             ) : (
-              <Text size="xs" c="dimmed">暂无配置的 IM 渠道</Text>
+              <Text size="xs" c="dimmed">暂无配置的消息渠道</Text>
             )}
           </div>
         </Collapse>

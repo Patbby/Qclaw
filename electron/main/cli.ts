@@ -1626,7 +1626,7 @@ async function runMacPrivilegedOpenClawInstall(
     operation: 'install',
     lifecycleCommand,
     prompt:
-      'Qclaw 需要安装 OpenClaw 命令行工具。\n\n这是连接 AI 服务和 IM 渠道的核心组件。\n\n请输入您的 Mac 登录密码以继续。',
+      'Qclaw 需要安装 OpenClaw 命令行工具。\n\n这是连接 AI 服务和消息渠道的核心组件。\n\n请输入您的 Mac 登录密码以继续。',
     timeoutMs: buildMirrorAwareTimeoutMs(MAIN_RUNTIME_POLICY.node.installOpenClawTimeoutMs),
     controlDomain: 'env-setup',
     qclawSafeWorkDir: workingDirectory,

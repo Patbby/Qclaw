@@ -691,9 +691,9 @@ export default function ChannelsPage() {
     <div className="p-6 space-y-6">
       <Group justify="space-between">
         <div>
-          <Text size="xl" fw={700}>IM 渠道管理</Text>
+          <Text size="xl" fw={700}>消息渠道管理</Text>
           <Text size="sm" c="dimmed" mt={4}>
-            配置和管理飞书、企微、钉钉、QQ 等 IM 渠道
+            配置和管理飞书、企微、钉钉、QQ 等消息渠道
           </Text>
         </div>
         <Group gap="sm">
@@ -740,7 +740,7 @@ export default function ChannelsPage() {
           {channels.length === 0 ? (
             <Card padding="xl" withBorder className="text-center">
               <Text size="sm" c="dimmed">
-                暂无配置的 IM 渠道，点击"添加渠道"开始配置
+                暂无配置的消息渠道，点击"添加渠道"开始配置
               </Text>
             </Card>
           ) : (

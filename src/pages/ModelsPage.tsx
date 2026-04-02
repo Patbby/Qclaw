@@ -1660,7 +1660,7 @@ export default function ModelsPage() {
       {/* 页头 */}
       <div className="px-1 mb-1 space-y-2">
         <Group justify="space-between" align="flex-start">
-          <Text size="md" fw={700} className="app-text-primary">模型与 API</Text>
+          <Text size="md" fw={700} className="app-text-primary">AI 模型</Text>
           <Group gap="xs">
             <SegmentedControl
               size="xs"

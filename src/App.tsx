@@ -50,7 +50,7 @@ type SetupStep = 'api-keys' | 'channel-connect' | 'pairing-code'
 
 const SETUP_STEPS: { key: SetupStep; label: string }[] = [
   { key: 'api-keys', label: 'AI 提供商' },
-  { key: 'channel-connect', label: 'IM 渠道' },
+  { key: 'channel-connect', label: '消息渠道' },
   { key: 'pairing-code', label: '配对' },
 ]
 const MODELS_ROUTE_HASH = '#/models'

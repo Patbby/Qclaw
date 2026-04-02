@@ -1647,7 +1647,7 @@ export async function refreshModelCapabilitiesData(
 export default function ModelCenter({
   onConfigured,
   providerNames,
-  submitIdleLabel = '下一步 — 配置 IM 渠道',
+  submitIdleLabel = '下一步 — 配置消息渠道',
   stayOnConfigured = false,
   configuredMessage = '模型信息已保存',
   collapsible = true,

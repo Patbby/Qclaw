@@ -2087,7 +2087,7 @@ export default function ChannelConnect({
 
   return (
     <div className="w-full">
-      <Title order={3} size="lg" fw={600} mb={4}>连接 IM 渠道</Title>
+      <Title order={3} size="lg" fw={600} mb={4}>连接消息渠道</Title>
       <Text size="sm" c="dimmed" mb="lg">选择并配置您的即时通讯平台</Text>
 
       {status === 'form' && (
